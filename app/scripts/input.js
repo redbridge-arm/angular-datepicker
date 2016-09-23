@@ -214,20 +214,24 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', '$window', 'da
         var top = 0,
             left = leftOffset;
         // calculate top:
-        if((screenHeight + topScrollOffset - topOffset - height - pickerHeight) < 0)
+        if((screenHeight + topScrollOffset - topOffset - height - pickerHeight) < 0) {
           top = topOffset - pickerHeight;
-        else
+        }
+        else {
           top = topOffset + height;
+        }
         // calculate left:
-        if((screenWidth + leftScrollOffset - leftOffset - pickerWidth) < 0)
+        if((screenWidth + leftScrollOffset - leftOffset - pickerWidth) < 0){
           left = leftOffset - (pickerWidth - width);
-        else
+        }
+        else{
           left = leftOffset;
+        }
 
         return {
           top: top,
           left: left
-        }
+        };
       }
 
       function showPicker() {
