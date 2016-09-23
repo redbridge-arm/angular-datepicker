@@ -195,19 +195,33 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', '$window', 'da
         });
       }
 
+      function getOffsetRect(elem) {
+        var box = elem.getBoundingClientRect();
+        var body = document.body;
+        var docElem = document.documentElement;
+        var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
+        var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+        var clientTop = docElem.clientTop || body.clientTop || 0;
+        var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+        var top  = box.top +  scrollTop - clientTop;
+        var left = box.left + scrollLeft - clientLeft;
+        return { top: Math.round(top), left: Math.round(left) };
+      }
+
       function getAbsolutePosition() {
         var pickerHeight = picker[0].offsetHeight,
             pickerWidth = picker[0].offsetWidth;
 
-        var pos = element[0].getBoundingClientRect();
+        var pos = element[0].getBoundingClientRect(),
+            pos2 = getOffsetRect(element[0]);
         // Support IE8
         var height = pos.height || element[0].offsetHeight,
             width = pos.width || element[0].offsetWidth;
         // bounds&sizes:
         var topScrollOffset  = window.scrollY,
             leftScrollOffset = window.scrollX,
-            topOffset   = element[0].offsetTop,
-            leftOffset  = element[0].offsetLeft,
+            topOffset   = pos2.top,
+            leftOffset  = pos2.left,
             screenHeight = window.innerHeight,
             screenWidth = window.innerWidth;
 

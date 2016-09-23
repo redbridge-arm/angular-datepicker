@@ -37,7 +37,7 @@
       <hr />
 
       <h2>Custom formats</h2>
-      <div ng-repeat="format in formats">
+      <div ng-repeat="format in formats" style="position: relative">
         <h5>{{format}}</h5>
         <input type="text" date-time ng-model="dates.today" view="hours" format="{{format}}">
       </div>
