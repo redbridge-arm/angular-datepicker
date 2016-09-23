@@ -28,7 +28,7 @@ Module.constant('dateTimeConfig', {
   format: 'YYYY-MM-DD HH:mm',
   views: ['date', 'year', 'month', 'hours', 'minutes'],
   autoClose: false,
-  position: 'relative'
+  position: 'absolute'
 });
 
 Module.directive('dateTimeAppend', function () {
@@ -41,7 +41,7 @@ Module.directive('dateTimeAppend', function () {
   };
 });
 
-Module.directive('dateTime', ['$compile', '$document', '$filter', 'dateTimeConfig', '$parse', 'datePickerUtils', function ($compile, $document, $filter, dateTimeConfig, $parse, datePickerUtils) {
+Module.directive('dateTime', ['$compile', '$document', '$filter', '$window', 'dateTimeConfig', '$parse', 'datePickerUtils', function ($compile, $document, $filter, $window, dateTimeConfig, $parse, datePickerUtils) {
   var body = $document.find('body');
   var dateFilter = $filter('mFormat');
 
@@ -195,6 +195,41 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', 'dateTimeConfi
         });
       }
 
+      function getAbsolutePosition() {
+        var pickerHeight = picker[0].offsetHeight,
+            pickerWidth = picker[0].offsetWidth;
+
+        var pos = element[0].getBoundingClientRect();
+        // Support IE8
+        var height = pos.height || element[0].offsetHeight,
+            width = pos.width || element[0].offsetWidth;
+        // bounds&sizes:
+        var topScrollOffset  = window.scrollY,
+            leftScrollOffset = window.scrollX,
+            topOffset   = element[0].offsetTop,
+            leftOffset  = element[0].offsetLeft,
+            screenHeight = window.innerHeight,
+            screenWidth = window.innerWidth;
+
+        var top = 0,
+            left = leftOffset;
+        // calculate top:
+        if((screenHeight + topScrollOffset - topOffset - height - pickerHeight) < 0)
+          top = topOffset - pickerHeight;
+        else
+          top = topOffset + height;
+        // calculate left:
+        if((screenWidth + leftScrollOffset - leftOffset - pickerWidth) < 0)
+          left = leftOffset - (pickerWidth - width);
+        else
+          left = leftOffset;
+
+        return {
+          top: top,
+          left: left
+        }
+      }
+
       function showPicker() {
         if (picker) {
           return;
@@ -228,11 +263,10 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', 'dateTimeConfi
         // move picker below input element
 
         if (position === 'absolute') {
-          var pos = element[0].getBoundingClientRect();
-          // Support IE8
-          var height = pos.height || element[0].offsetHeight;
-          picker.css({top: (pos.top + height) + 'px', left: pos.left + 'px', display: 'block', position: position});
+          picker.css({top: 0, left: 0, display: 'block', position: position, opacity: 0}); // hack to calculate picker size
           body.append(picker);
+          var pos = getAbsolutePosition();
+          picker.css({top: pos.top + 'px', left: pos.left + 'px', opacity: 1});
         } else {
           // relative
           container = angular.element('<div date-picker-wrapper></div>');
@@ -247,6 +281,12 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', 'dateTimeConfi
         });
       }
 
+      angular.element($window).bind('resize', function() {
+        if (picker) {
+          var pos = getAbsolutePosition();
+          picker.css({top: pos.top + 'px', left: pos.left + 'px', opacity: 1});
+        }
+      });
       element.bind('focus', showPicker);
       element.bind('blur', clear);
       getTemplate();
