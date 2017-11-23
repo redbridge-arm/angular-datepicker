@@ -13,6 +13,7 @@ Module.constant('dateTimeConfig', {
       (attrs.view ? 'view="' + attrs.view + '" ' : '') +
       (attrs.maxView ? 'max-view="' + attrs.maxView + '" ' : '') +
       (attrs.maxDate ? 'max-date="' + attrs.maxDate + '" ' : '') +
+      (attrs.required ? 'required="' + attrs.required + '" ' : '') +
       (attrs.autoClose ? 'auto-close="' + attrs.autoClose + '" ' : '') +
       (attrs.template ? 'template="' + attrs.template + '" ' : '') +
       (attrs.minView ? 'min-view="' + attrs.minView + '" ' : '') +
@@ -41,7 +42,7 @@ Module.directive('dateTimeAppend', function () {
   };
 });
 
-Module.directive('dateTime', ['$compile', '$document', '$filter', '$window', 'dateTimeConfig', '$parse', 'datePickerUtils', function ($compile, $document, $filter, $window, dateTimeConfig, $parse, datePickerUtils) {
+Module.directive('dateTime', ['$compile', '$document', '$filter', '$window', '$timeout', 'dateTimeConfig', '$parse', 'datePickerUtils', function ($compile, $document, $filter, $window, $timeout, dateTimeConfig, $parse, datePickerUtils) {
   var body = $document.find('body');
   var dateFilter = $filter('mFormat');
 
@@ -110,6 +111,7 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', '$window', 'da
         setMin(datePickerUtils.findParam(scope, attrs.minDate));
 
         ngModel.$validators.min = function (value) {
+          if(!value && !attrs.required){return true;}
           //If we don't have a min / max value, then any value is valid.
           return minValid ? moment.isMoment(value) && (minDate.isSame(value) || minDate.isBefore(value)) : true;
         };
@@ -119,6 +121,7 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', '$window', 'da
         setMax(datePickerUtils.findParam(scope, attrs.maxDate));
 
         ngModel.$validators.max = function (value) {
+          if(!value && !attrs.required){return true;}
           return maxValid ? moment.isMoment(value) && (maxDate.isSame(value) || maxDate.isAfter(value)) : true;
         };
       }
@@ -269,7 +272,9 @@ Module.directive('dateTime', ['$compile', '$document', '$filter', '$window', 'da
           });
 
           scope.$on('hidePicker', function () {
-            element[0].blur();
+            $timeout(function(){
+              element[0].blur();
+            });
           });
 
           scope.$on('$destroy', clear);
